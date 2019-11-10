@@ -1,0 +1,51 @@
+version: '2'
+services:
+  gitlab:
+    container_name: gitlab
+    image: gitlab/gitlab-ce:latest
+    environment:
+      GITLAB_OMNIBUS_CONFIG: external_url 'http://192.168.0.102'
+    hostname: 192.168.0.102
+    network_mode: bridge
+    ports:
+    - 80:80
+    - 443:443
+    restart: always
+  gitlab-runner:
+    container_name: gitlab-runner
+    image: gitlab/gitlab-runner:latest
+    network_mode: bridge
+    dns: 8.8.8.8
+    restart: always
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  rancher:
+    container_name: rancher
+    image: rancher/server:stable
+    network_mode: bridge
+    ports:
+    - 8080:8080
+    restart: always
+  docker-registry:
+    container_name: registry
+    image: registry:2
+    environment:
+      REGISTRY_PROXY_REMOTEURL: https://registry-1.docker.io
+      REGISTRY_HTTP_DEBUG_ADDR: :5001
+      REGISTRY_HTTP_DEBUG_PROMETHEUS_ENABLED: "true"
+    network_mode: bridge
+    ports:
+    - 5000:5000
+    - 5001:5001
+    restart: always
+  minio:
+    container_name: minio
+    image: minio/minio:latest
+    network_mode: bridge
+    ports:
+    - 9000:9000
+    command: server /export
+    restart: always
+    volumes:
+    - .minio:/root/.minio
+    - ./export:/export
